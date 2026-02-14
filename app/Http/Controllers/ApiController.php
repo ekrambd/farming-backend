@@ -100,6 +100,7 @@ class ApiController extends Controller
             $user->phone = $request->phone;
             $user->email = $request->email;
             $user->password = bcrypt($request->password);
+            $user->address = $request->address;
             $user->save();
 
             return response()->json(['status'=>true, 'message'=>"Successfully Signup", "data"=>$user],201);
