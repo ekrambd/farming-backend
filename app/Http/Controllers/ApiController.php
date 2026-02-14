@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Farmercategory;
 use App\Models\Farmersubcategory;
 use App\Models\User;
+use App\Models\Farmerslider;
 use Validator;
 use Auth;
 
@@ -156,6 +157,17 @@ class ApiController extends Controller
         {
             auth()->user()->tokens()->delete();
             return response()->json(['status'=>true, 'message'=>'Successfully Logged Out']);
+        }catch(Exception $e){
+            return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
+        }
+    }
+
+    public function sliders()
+    {
+        try
+        {
+            $sliders = Farmerslider::latest()->get();
+            return response()->json(['status'=>count($sliders) > 0, 'data'=>$sliders]);
         }catch(Exception $e){
             return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
         }
