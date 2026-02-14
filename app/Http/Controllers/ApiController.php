@@ -65,6 +65,7 @@ class ApiController extends Controller
                 'full_name' => 'required|string|max:50',
                 'phone' => 'required|string',
                 'email' => 'nullable|email',
+                'address' => 'nullable|string',
                 'password' => 'required|string',
                 'confirm_password' => 'required|string|same:password'
             ]);
