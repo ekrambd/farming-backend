@@ -6,6 +6,8 @@ use App\Http\Controllers\AccessController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FarmersliderController;
 use App\Http\Controllers\FarmercategoryController;
+use App\Http\Controllers\FarmersubcategoryController;
+use App\Http\Controllers\FarmerunitController;
 use App\Http\Controllers\FarmeritemController;
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +41,9 @@ Route::group(['middleware' => 'prevent-back-history'],function(){
 
    //farmer subcategories
     Route::resource('farmersubcategories', FarmersubcategoryController::class);
+
+   //farmer units
+    Route::resource('farmerunits', FarmerunitController::class);
 
 
 });

@@ -6,14 +6,14 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Edit farmercategory</h1>
+                    <h1 class="m-0">Add SubCategory</h1>
                 </div><!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="{{URL::to('/dashboard')}}">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="{{URL::to('/categories')}}">All farmercategory
+                        <li class="breadcrumb-item"><a href="{{URL::to('/farmersubcategories')}}">All SubCategory
                                 </a></li>
-                        <li class="breadcrumb-item active">Edit farmercategory</li>
+                        <li class="breadcrumb-item active">Add SubCategory</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -22,23 +22,22 @@
     <!-- /.content-header -->
 
     <section class="content">
-        <div class="card card-success">
+        <div class="card card-primary">
             <div class="card-header">
-                <h3 class="card-title">Edit farmercategory</h3>
+                <h3 class="card-title">Add SubCategory</h3>
             </div>
             <!-- /.card-header -->
             <!-- form start -->
-            <form action="{{route('farmercategories.update',$farmercategory->id)}}" method="POST" enctype="multipart/form-data">
+            <form action="{{route('farmersubcategories.store')}}" method="POST" enctype="multipart/form-data">
                 @csrf
-                @method('PATCH')
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label for="category_name">Category Name <span class="required">*</span></label>
-                                <input type="text" name="category_name" class="form-control" id="category_name"
-                                    placeholder="Category Name" required="" value="{{old('farmercategory_name',$farmercategory->category_name)}}">
-                                @error('category_name')
+                                <label for="subcategory_name">SubCategory Name <span class="required">*</span></label>
+                                <input type="text" name="subcategory_name" class="form-control" id="subcategory_name"
+                                    placeholder="SubCategory Name" required="" value="{{old('subcategory_name')}}">
+                                @error('subcategory_name')
                                 <span class="alert alert-danger">{{ $message }}</span>
                                 @enderror
                             </div>
@@ -47,10 +46,26 @@
 
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label for="category_name_bn">Category Name (BN) <span class="required">*</span></label>
-                                <input type="text" name="category_name_bn" class="form-control" id="category_name_bn"
-                                    placeholder="Category Name" required="" value="{{old('category_name_bn',$farmercategory->category_name_bn)}}">
-                                @error('category_name_bn')
+                                <label for="subcategory_name_bn">SubCategory Name (BN) <span class="required">*</span></label>
+                                <input type="text" name="subcategory_name_bn" class="form-control" id="subcategory_name_bn"
+                                    placeholder="SubCategory Name" required="" value="{{old('subcategory_name_bn')}}">
+                                @error('subcategory_name_bn')
+                                <span class="alert alert-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="category_id">Select Category <span class="required">*</span></label>
+                                <select class="form-control select2bs4" name="farmercategory_id" id="category_id" required="">
+                                    <option value="" selected="" disabled="">Select Category</option>
+                                    @foreach(categories() as $category)
+                                     <option value="{{$category->id}}">{{$category->category_name}}</option>
+                                    @endforeach
+                                </select>
+                                @error('category_id')
                                 <span class="alert alert-danger">{{ $message }}</span>
                                 @enderror
                             </div>
@@ -62,8 +77,8 @@
                                 <label for="status">Select Status <span class="required">*</span></label>
                                 <select class="form-control select2bs4" name="status" id="status" required="">
                                     <option value="" selected="" disabled="">Select Status</option>
-                                    <option value="Active" <?php if($farmercategory->status == 'Active'){echo "selected";} ?>>Active</option>
-                                    <option value="Inactive" <?php if($farmercategory->status == 'Inactive'){echo "selected";} ?>>Inactive</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
                                 </select>
                                 @error('status')
                                 <span class="alert alert-danger">{{ $message }}</span>
@@ -73,8 +88,8 @@
 
                         <div class="col-md-12">
                           <div class="form-group">
-                            <label for="image">Image <span class="required">*</span></label>
-                            <input name="image" type="file" id="image" accept="image/*" class="dropify" data-height="200" data-default-file="{{URL::to($farmercategory->image)}}"/>
+                            <label for="image">Image</label>
+                            <input name="image" type="file" id="image" accept="image/*" class="dropify" data-height="150" />
                             @error('image')
                             <span class="alert alert-danger">{{ $message }}</span>
                             @enderror
@@ -83,7 +98,7 @@
 
                         
                         <div class="form-group w-100 px-2">
-                            <button type="submit" class="btn btn-success">Save Changes</button>
+                            <button type="submit" class="btn btn-primary">Submit</button>
                         </div>
                     </div>
                     <!-- /.card-body -->

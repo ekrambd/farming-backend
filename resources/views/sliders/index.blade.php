@@ -28,7 +28,7 @@
             <div class="card-body">
                 <a href="{{route('farmersliders.create')}}" class="btn btn-primary add-new mb-2">Add New Slider</a>
                 <div class="fetch-data table-responsive">
-                    <table id="category-table" class="table table-bordered table-striped data-table">
+                    <table id="slider-table" class="table table-bordered table-striped data-table">
                         <thead>
                             <tr>
                                 <th>Image</th>
@@ -50,7 +50,9 @@
   <script>
   	$(document).ready(function(){
 
-  		var categoryTable = $('#category-table').DataTable({
+      let slider_id;
+
+  		var sliderTable = $('#slider-table').DataTable({
 		        searching: true,
 		        processing: true,
 		        serverSide: true,
@@ -74,13 +76,13 @@
 
            e.preventDefault();
 
-           var int_slider_id = $(this).data('id');
+           slider_id = $(this).data('id');
 
            if(confirm('Do you want to delete this?'))
            {
                $.ajax({
 
-                    url: "{{url('/farmersliders')}}/"+int_slider_id,
+                    url: "{{url('/farmersliders')}}/"+slider_id,
 
                          type:"DELETE",
                          dataType:"json",

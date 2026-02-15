@@ -7,12 +7,12 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">All Category</h1>
+                    <h1 class="m-0">All Unit</h1>
                 </div><!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="{{URL::to('/dashboard')}}">Dashboard</a></li>
-                        <li class="breadcrumb-item active">All Category</li>
+                        <li class="breadcrumb-item active">All Unit</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -22,17 +22,17 @@
     <section class="content">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">All Category</h3>
+                <h3 class="card-title">All Unit</h3>
             </div>
             <!-- /.card-header -->
             <div class="card-body">
-                <a href="{{route('farmercategories.create')}}" class="btn btn-primary add-new mb-2">Add New Category</a>
+                <a href="{{route('farmerunits.create')}}" class="btn btn-primary add-new mb-2">Add New Unit</a>
                 <div class="fetch-data table-responsive">
-                    <table id="category-table" class="table table-bordered table-striped data-table">
+                    <table id="unit-table" class="table table-bordered table-striped data-table">
                         <thead>
                             <tr>
-                                <th>Category Name EN</th>
-                                <th>Category Name BN</th>
+                                <th>Unit Name EN</th>
+                                <th>Unit Name BN</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -51,8 +51,8 @@
   
   <script>
   	$(document).ready(function(){
-      let category_id;
-  		var categoryTable = $('#category-table').DataTable({
+      let unit_id;
+  		var unitTable = $('#unit-table').DataTable({
 		        searching: true,
 		        processing: true,
 		        serverSide: true,
@@ -60,12 +60,12 @@
 		        responsive: true,
 		        stateSave: true,
 		        ajax: {
-		          url: "{{url('/farmercategories')}}",
+		          url: "{{url('/farmerunits')}}",
 		        },
 
 		        columns: [
-		            {data: 'category_name', name: 'category_name'},
-                {data: 'category_name_bn', name: 'category_name_bn'},
+		            {data: 'unit_name', name: 'unit_name'},
+                {data: 'unit_name_bn', name: 'unit_name_bn'}, 
 		            {data: 'status', name: 'status'},
 		            {data: 'action', name: 'action', orderable: false, searchable: false},
 		        ]
@@ -73,17 +73,17 @@
 
 
 
-       $(document).on('click', '#status-category-update', function(){
+       $(document).on('click', '#status-unit-update', function(){
 
-	         category_id = $(this).data('id');
-	         var isCategorychecked = $(this).prop('checked');
-	         var status_val = isCategorychecked ? 'Active' : 'Inactive'; 
+	         unit_id = $(this).data('id');
+	         var isUnitchecked = $(this).prop('checked');
+	         var status_val = isUnitchecked ? 'Active' : 'Inactive'; 
 	         $.ajax({
 
-                url: "{{url('/category-status-update')}}",
+                url: "{{url('/unit-status-update')}}",
 
                      type:"POST",
-                     data:{'category_id':category_id, 'status':status_val},
+                     data:{'unit_id':unit_id, 'status':status_val},
                      dataType:"json",
                      success:function(data) {
 
@@ -97,17 +97,17 @@
        }); 
 
 
-       $(document).on('click', '.delete-category', function(e){
+       $(document).on('click', '.delete-unit', function(e){
 
            e.preventDefault();
 
-           category_id = $(this).data('id');
+           unit_id = $(this).data('id');
 
            if(confirm('Do you want to delete this?'))
            {
                $.ajax({
 
-                    url: "{{url('/farmercategories')}}/"+category_id,
+                    url: "{{url('/farmerunits')}}/"+unit_id,
 
                          type:"DELETE",
                          dataType:"json",

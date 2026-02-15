@@ -108,6 +108,7 @@ class FarmercategoryController extends Controller
             $category = new Farmercategory();
             $category->user_id = user()->id;
             $category->category_name = $request->category_name;
+            $category->category_name_bn = $request->category_name_bn;
             $category->status = $request->status;
             $category->image = $path;
             $category->save();
@@ -166,6 +167,7 @@ class FarmercategoryController extends Controller
             }
             $category = $farmercategory;
             $category->category_name = $request->category_name;
+            $category->category_name_bn = $request->category_name_bn;
             $category->status = $request->status;
             $category->image = $path;
             $category->update();

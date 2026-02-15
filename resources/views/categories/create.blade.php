@@ -43,6 +43,16 @@
                             </div>
                         </div> 
 
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="category_name_bn">Category Name (BN) <span class="required">*</span></label>
+                                <input type="text" name="category_name_bn" class="form-control" id="category_name_bn"
+                                    placeholder="Category Name" required="" value="{{old('category_name_bn')}}">
+                                @error('category_name_bn')
+                                <span class="alert alert-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
 
                         <div class="col-md-12">
                             <div class="form-group">

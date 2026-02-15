@@ -149,6 +149,32 @@
             </ul>
           </li>
 
+
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Subcategories
+                <i class="fas fa-angle-left right"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="{{route('farmersubcategories.create')}}" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Add SubCategory</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="{{route('farmersubcategories.index')}}" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>All SubCategory</p>
+                </a>
+              </li>
+             
+            </ul>
+          </li>
+
           <li class="nav-item">
             <a href="#" class="nav-link">
               <i class="nav-icon fas fa-th"></i>
@@ -168,6 +194,32 @@
                 <a href="{{route('farmersliders.index')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i> 
                   <p>All Slider</p>
+                </a>
+              </li>
+             
+            </ul>
+          </li>
+
+
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-list"></i>
+              <p>
+                Units
+                <i class="fas fa-angle-left right"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="{{route('farmerunits.create')}}" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Add Unit</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="{{route('farmerunits.index')}}" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i> 
+                  <p>All Unit</p>
                 </a>
               </li>
              
