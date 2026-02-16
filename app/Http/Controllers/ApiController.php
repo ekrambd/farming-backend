@@ -7,8 +7,10 @@ use App\Models\Farmercategory;
 use App\Models\Farmersubcategory;
 use App\Models\User;
 use App\Models\Farmerslider;
+use App\Models\Userinfo;
 use Validator;
 use Auth;
+use DB;
 
 class ApiController extends Controller
 {
@@ -168,6 +170,166 @@ class ApiController extends Controller
         {
             $sliders = Farmerslider::latest()->get();
             return response()->json(['status'=>count($sliders) > 0, 'data'=>$sliders]);
+        }catch(Exception $e){
+            return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
+        }
+    }
+
+    public function farmerSignup(Request $request)
+    {   
+        DB::beginTransaction();
+        try
+        {
+            $validator = Validator::make($request->all(), [
+                'full_name' => 'required|string',
+                'farmercategory_id' => 'required|integer|exists:farmercategories,id',
+                'farmersubcategory_id' => 'nullable|integer|exists:farmersubcategories,id',
+                'email' => 'nullable|email',
+                'phone' => 'nullable|string',
+                'password' => 'required|string',
+                'nid_passport' => 'required|numeric',
+                'confirm_password' => 'required|string|same:password'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false, 
+                    'message' => 'Please fill all requirement fields', 
+                    'data' => $validator->errors()
+                ], 422);  
+            }
+
+            $emailCheck = User::where('email', $request->email)->first();
+            $phoneCheck = User::where('phone', $request->phone)->first();
+
+            $nidCheck = Userinfo::where('nid_passport',$request->nid_passport)->first();
+
+            if($emailCheck && $phoneCheck)
+            {
+                return response()->json(['status'=>false, 'message'=>'Email && Phone Both are already exist', 'data'=>new \stdClass()],400);
+            }elseif($emailCheck){
+                return response()->json(['status'=>false, 'message'=>'The Email already exist', 'data'=> new \stdClass()],400);
+            }elseif($phoneCheck){
+                return response()->json(['status'=>false, 'message'=>'The Phone already exist', 'data'=> new \stdClass()],400);
+            }
+
+            if($nidCheck)
+            {
+                return response()->json(['status'=>false, 'message'=>'The NID/Passport already exist', 'data'=> new \stdClass()],400);
+            }
+
+            if ($request->file('nid_front_photo')) {
+                $file = $request->file('nid_front_photo');
+                $name = time() ."nid_front_". $file->getClientOriginalName();
+                $file->move(public_path() . '/uploads/farmers/', $name);
+                $nidFrontPhoto = 'uploads/farmers/' . $name;
+            }else{
+                $nidFrontPhoto = NULL;
+            }
+
+
+            if ($request->file('nid_back_photo')) {
+                $file = $request->file('nid_back_photo');
+                $name = time() . "nid_back_". $file->getClientOriginalName();
+                $file->move(public_path() . '/uploads/farmers/', $name);
+                $nidBackPhoto = 'uploads/farmers/' . $name;
+            }else{
+                $nidBackPhoto = NULL;
+            }
+
+
+            if ($request->file('trade_license_photo')) {
+                $file = $request->file('trade_license_photo');
+                $name = time() ."trade_license_". $file->getClientOriginalName();
+                $file->move(public_path() . '/uploads/farmers/', $name);
+                $nidTradeLicensePhoto = 'uploads/farmers/' . $name;
+            }else{
+                $nidTradeLicensePhoto = NULL;
+            }
+
+            // $columns = Schema::getColumnListing('userinfos');
+            // return $columns;
+
+            $user = new User();
+            $user->role = 'farmer';
+            $user->full_name = $request->full_name;
+            $user->email = $request->email;
+            $user->phone = $request->phone;
+            $user->password = bcrypt($request->password);
+            $user->status = 'Active';
+            $user->save();
+
+            $info = new Userinfo();
+            $info->user_id = $user->id;
+            $info->farmercategory_id = $request->farmercategory_id;
+            $info->farmersubcategory_id = $request->farmersubcategory_id;
+            $info->businees_location = $request->businees_location;
+            $info->businees_address = $request->businees_address;
+            $info->nid_passport = $request->nid_passport;
+            $info->nid_front_photo = $nidFrontPhoto;
+            $info->nid_back_photo = $nidBackPhoto;
+            $info->trade_license_photo = $nidTradeLicensePhoto;
+            $info->save();
+
+            DB::commit();
+
+            $data = array('user'=>$user, 'info'=>$info);
+
+            return response()->json(['status'=>true, 'message'=>'Successfully Signup', 'data'=>$data]);
+
+
+        }catch(Exception $e){
+            DB::rollback();
+            return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
+        }
+    }
+
+    public function farmerSignin(Request $request)
+    {
+        try
+        {
+            $validator = Validator::make($request->all(), [
+                'login' => 'required|string',
+                'password' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false, 
+                    'message' => 'Please fill all requirement fields', 
+                    'data' => $validator->errors()
+                ], 422);  
+            }
+
+            $login = $request->input('login');
+            $password = $request->input('password');
+
+            $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+            $user = User::where('email',$login)->orWhere('phone',$login)->first();
+            
+            if($user->status == 'Inactive'){
+                return response()->json(['status'=>false, 'message'=>'Sorry you are not active user', 'token'=>"", 'user'=>new \stdClass()],403);
+            }
+
+            if (Auth::attempt([$fieldType => $login, 'password' => $password])) {
+                $token = $user->createToken('MyApp')->plainTextToken;
+                return response()->json(['status'=>true,'message'=>'Successfully Logged IN', 'token'=>$token, 'user'=>$user]);
+            }
+
+            return response()->json(['status'=>false,'message'=>"Invalid Email/Phone or Password", 'token'=>"", 'user'=>new \stdClass()],401);
+
+        }catch(Exception $e){
+            return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
+        }
+    }
+
+    public function farmerSignOut(Request $request)
+    {
+        try
+        {
+            auth()->user()->tokens()->delete();
+            return response()->json(['status'=>true, 'message'=>'Successfully Logged Out']);
         }catch(Exception $e){
             return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
         }

@@ -18,14 +18,19 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('categories', [ApiController::class, 'categories']);
-
-Route::post('user-signup', [ApiController::class, 'userSignup']);
-Route::post('user-signin', [ApiController::class, 'userSignin']);
-
 Route::middleware(['throttle:60,1'])->group(function () {
+
+	Route::post('categories', [ApiController::class, 'categories']);
+
+	Route::post('user-signup', [ApiController::class, 'userSignup']);
+	Route::post('user-signin', [ApiController::class, 'userSignin']);
+
+	Route::post('farmer-signup', [ApiController::class, 'farmerSignup']);
+	Route::post('farmer-signin', [ApiController::class, 'farmerSignin']);
+
 	Route::middleware('auth:sanctum')->group( function (){
 		Route::post('user-signout', [ApiController::class, 'userSignOut']);
+		Route::post('farmer-signout', [ApiController::class, 'farmerSignOut']);
 		//sliders
 		Route::get('/sliders', [ApiController::class, 'sliders']);
 	});
