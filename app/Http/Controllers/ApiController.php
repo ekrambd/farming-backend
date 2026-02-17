@@ -199,7 +199,7 @@ class ApiController extends Controller
     {   
         DB::beginTransaction();
         try
-        {
+        {   //v
             $validator = Validator::make($request->all(), [
                 'full_name' => 'required|string',
                 'farmercategory_id' => 'required|integer|exists:farmercategories,id',
