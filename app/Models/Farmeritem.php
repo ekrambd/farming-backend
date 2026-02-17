@@ -9,8 +9,33 @@ class Farmeritem extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'farmerunit_id',
+        'farmercategory_id',
+        'farmersubcategory_id',
+        'item_name',
+        'item_name_bn',
+        'price',
+        'discount',
+        'stock_qty',
+        'description',
+        'featured_image',
+        'status',
+    ];
+
     public function images()
     {
         return $this->hasMany(FarmerImage::class, 'farmeritem_id');
+    }
+
+    public function farmercategory()
+    {
+    	return $this->belongsTo(Farmercategory::class);
+    }
+
+    public function farmersubcategory()
+    {
+    	return $this->belongsTo(Farmersubcategory::class);
     }
 }

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('farmercategory_id');
             $table->integer('farmersubcategory_id')->nullable();
             $table->string('item_name');
+            $table->string('item_name_bn');
             $table->string('price');
             $table->string('discount')->default('0')->nullable();
             $table->string('stock_qty');

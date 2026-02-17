@@ -21,6 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware(['throttle:60,1'])->group(function () {
 
 	Route::post('categories', [ApiController::class, 'categories']);
+	Route::get('/units', [ApiController::class, 'units']);
 
 	Route::post('user-signup', [ApiController::class, 'userSignup']);
 	Route::post('user-signin', [ApiController::class, 'userSignin']);
@@ -33,5 +34,13 @@ Route::middleware(['throttle:60,1'])->group(function () {
 		Route::post('farmer-signout', [ApiController::class, 'farmerSignOut']);
 		//sliders
 		Route::get('/sliders', [ApiController::class, 'sliders']);
+
+		//item upload
+		Route::post('save-item', [ApiController::class, 'saveItem']);
+		Route::post('/item-lists', [ApiController::class, 'itemLists']);
+		Route::get('/item-details/{id}', [ApiController::class, 'itemDetails']);
+		Route::post('/update-item/{id}', [ApiController::class, 'updateItem']);
+		Route::get('/delete-item/{id}', [ApiController::class, 'deleteItem']); 
+		Route::get('/single-image-delete/{id}', [ApiController::class, 'deleteItemImage']);
 	});
 });

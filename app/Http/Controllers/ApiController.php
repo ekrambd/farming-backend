@@ -8,6 +8,10 @@ use App\Models\Farmersubcategory;
 use App\Models\User;
 use App\Models\Farmerslider;
 use App\Models\Userinfo;
+use App\Models\Farmerunit;
+use App\Models\Farmeritem;
+use App\Models\Farmerimage;
+//use Aws\S3\S3Client
 use Validator;
 use Auth;
 use DB;
@@ -23,7 +27,7 @@ class ApiController extends Controller
 
 	        if ($request->has('search') && !empty($request->search)) {
 	            $search = $request->search;
-	            $query->where('category_name', 'LIKE', "%{$search}%");
+	            $query->where('category_name', 'LIKE', "%{$search}%")->orWhere('category_name_bn', 'LIKE', "%{$search}%");
 	        }
 
 	        $query->where('status', 'Active');
@@ -334,5 +338,354 @@ class ApiController extends Controller
             return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
         }
     }
+
+    public function units(Request $request)
+    {
+        try
+        {
+            $query = Farmerunit::query();
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                $query->where('unit_name', 'LIKE', "%{$search}%")->orWhere('unit_name_bn', 'LIKE', "%{$search}%");
+            }
+            $data = $query->get();
+            return response()->json(['status'=>count($data) > 0, 'data'=>$data]);
+        }catch(Exception $e){
+            return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
+        }
+    }
+
+    public function saveItem(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $validator = Validator::make($request->all(), [
+                'item_name' => 'required|string|max:50',
+                'item_name_bn' => 'required|string|max:50',
+                'farmerunit_id' => 'required|integer|exists:farmerunits,id',
+                'farmercategory_id' => 'required|integer|exists:farmercategories,id',
+                'farmersubcategory_id' => 'nullable|integer|exists:farmersubcategories,id',
+                'price' => 'required|numeric',
+                'discount' => 'nullable|numeric',
+                'stock_qty' => 'required|numeric',
+                'description' => 'required',
+                'featured_image' => 'required|image',
+                'status' => 'required|in:Active,Inactive',
+                'images' => 'required|array',
+                'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation failed',
+                    'data' => $validator->errors()
+                ], 422);
+            }
+
+            // Featured Image Upload
+            $file = $request->file('featured_image');
+            $name = time() . user()->id . '-' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/items'), $name);
+            $featuredImage = 'uploads/items/' . $name;
+
+            // Save Item
+            $item = Farmeritem::create([
+                'user_id' => user()->id,
+                'farmerunit_id' => $request->farmerunit_id,
+                'farmercategory_id' => $request->farmercategory_id,
+                'farmersubcategory_id' => $request->farmersubcategory_id,
+                'item_name' => $request->item_name,
+                'item_name_bn' => $request->item_name_bn,
+                'price' => $request->price,
+                'discount' => $request->discount,
+                'stock_qty' => $request->stock_qty,
+                'description' => $request->description,
+                'featured_image' => $featuredImage,
+                'status' => $request->status,
+            ]);
+
+            // Multiple Images Upload
+            if ($request->hasFile('images')) {
+
+                foreach ($request->file('images') as $image) {
+
+                    $imageName = time() . '-' . $item->id . '-' . $image->getClientOriginalName();
+                    $image->move(public_path('uploads/items/images'), $imageName);
+
+                    $item->images()->create([
+                        'image_path' => 'uploads/items/images/' . $imageName
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'item_id' => $item->id,
+                'message' => 'Successfully an item has been added',
+            ]);
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'code' => $e->getCode(),
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function itemLists(Request $request)
+    {
+        try {
+
+            $query = Farmeritem::query();
+
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                $query->where('item_name', 'LIKE', "%{$search}%")->orWhere('item_name_bn', 'LIKE', "%{$search}%");
+            }
+
+            if($request->has('status'))
+            {
+                $query->where('status',$request->status);
+            }
+
+            if($request->has('category_id'))
+            {
+                $query->where('farmercategory_id',$request->category_id);
+            }
+
+            if($request->has('subcategory_id'))
+            {
+                $query->where('farmersubcategory_id',$request->subcategory_id);
+            }
+
+
+            if ($request->is_paginate == 1) {
+
+                $per_page = $request->per_page ?? 10;
+
+                $data = $query->with('farmercategory','farmersubcategory')->where('user_id',user()->id)->latest()->paginate($per_page);
+
+            } else {
+
+                $data = $query->with('farmercategory','farmersubcategory')->where('user_id',user()->id)->latest()->get();
+            }
+
+            return response()->json([
+                'status' => true,
+                'data'   => $data
+            ]);
+
+        } catch (Exception $e) {
+
+            return response()->json([
+                'status'  => false,
+                'code'    => $e->getCode(),
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function itemDetails($id)
+    {
+        try
+        {
+            $data = Farmeritem::with('farmercategory','farmersubcategory','images')->findorfail($id);
+            return response()->json(['status'=>true, 'data'=>$data]);
+        }catch (Exception $e) {
+
+            return response()->json([
+                'status'  => false,
+                'code'    => $e->getCode(),
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateItem(Request $request, $id)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $item = Farmeritem::findOrFail($id);
+
+            $validator = Validator::make($request->all(), [
+                'item_name' => 'required|string|max:50',
+                'item_name_bn' => 'required|string|max:50',
+                'farmerunit_id' => 'required|integer|exists:farmerunits,id',
+                'farmercategory_id' => 'required|integer|exists:farmercategories,id',
+                'farmersubcategory_id' => 'nullable|integer|exists:farmersubcategories,id',
+                'price' => 'required|numeric',
+                'discount' => 'nullable|numeric',
+                'stock_qty' => 'required|numeric',
+                'description' => 'required',
+                'featured_image' => 'nullable|image',
+                'status' => 'required|in:Active,Inactive',
+                'images' => 'nullable|array',
+                'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation failed',
+                    'data' => $validator->errors()
+                ], 422);
+            }
+
+            /*
+            ===============================
+            FEATURED IMAGE UPDATE
+            ===============================
+            */
+            if ($request->hasFile('featured_image')) {
+
+                // Delete old file
+                if ($item->featured_image && file_exists(public_path($item->featured_image))) {
+                    unlink(public_path($item->featured_image));
+                }
+
+                $file = $request->file('featured_image');
+                $name = time() . user()->id . '-' . $file->getClientOriginalName();
+                $file->move(public_path('uploads/items'), $name);
+
+                $item->featured_image = 'uploads/items/' . $name;
+            }
+
+            /*
+            ===============================
+            UPDATE MAIN DATA
+            ===============================
+            */
+
+            $item->update([
+                'farmerunit_id' => $request->farmerunit_id,
+                'farmercategory_id' => $request->farmercategory_id,
+                'farmersubcategory_id' => $request->farmersubcategory_id,
+                'item_name' => $request->item_name,
+                'item_name_bn' => $request->item_name_bn,
+                'price' => $request->price,
+                'discount' => $request->discount,
+                'stock_qty' => $request->stock_qty,
+                'description' => $request->description,
+                'status' => $request->status,
+            ]);
+
+            /*
+            ===============================
+            ADD NEW GALLERY IMAGES
+            ===============================
+            */
+
+            if ($request->hasFile('images')) {
+
+                foreach ($request->file('images') as $image) {
+
+                    $imageName = time() . '-' . $item->id . '-' . $image->getClientOriginalName();
+                    $image->move(public_path('uploads/items/images'), $imageName);
+
+                    $item->images()->create([
+                        'image_path' => 'uploads/items/images/' . $imageName
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Item updated successfully'
+            ]);
+
+        } catch (Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deleteItem($id)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $item = Farmeritem::with('images')->findOrFail($id);
+
+            /*
+            ===============================
+            DELETE FEATURED IMAGE FILE
+            ===============================
+            */
+            if ($item->featured_image && file_exists(public_path($item->featured_image))) {
+                unlink(public_path($item->featured_image));
+            }
+
+            /*
+            ===============================
+            DELETE GALLERY IMAGES FILES
+            ===============================
+            */
+            foreach ($item->images as $image) {
+
+                if ($image->image_path && file_exists(public_path($image->image_path))) {
+                    unlink(public_path($image->image_path));
+                }
+
+                $image->delete();
+            }
+
+            /*
+            ===============================
+            DELETE ITEM
+            ===============================
+            */
+            $item->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Item deleted successfully'
+            ]);
+
+        } catch (Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function deleteItemImage($id)
+    {
+        try
+        {
+            $data = Farmerimage::findorfail($id);
+            unlink(public_path($data->image_path));
+            $data->delete();
+            return response()->json(['status'=>true, 'message'=>'Successfully the image has been deleted']);
+        }catch(Exception $e){
+            return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
+        }
+    }
+
 
 }
