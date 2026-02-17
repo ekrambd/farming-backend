@@ -35,7 +35,7 @@ Route::middleware(['throttle:60,1'])->group(function () {
 		//sliders
 		Route::get('/sliders', [ApiController::class, 'sliders']);
 
-		//item upload
+		//item uploads
 		Route::post('save-item', [ApiController::class, 'saveItem']);
 		Route::post('/item-lists', [ApiController::class, 'itemLists']);
 		Route::get('/item-details/{id}', [ApiController::class, 'itemDetails']);
