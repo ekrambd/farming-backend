@@ -269,6 +269,16 @@ class ApiController extends Controller
 
             // $columns = Schema::getColumnListing('userinfos');
             // return $columns;
+            
+            
+            if ($request->file('profile_image')) {
+                $file = $request->file('profile_image');
+                $name = time() . "profile_". $file->getClientOriginalName();
+                $file->move(public_path() . '/uploads/farmers/', $name);
+                $path = 'uploads/farmers/' . $name;
+            }else{
+                $path = NULL;
+            }
 
             $user = new User();
             $user->role = 'farmer';
@@ -277,6 +287,7 @@ class ApiController extends Controller
             $user->phone = $request->phone;
             $user->password = bcrypt($request->password);
             $user->status = 'Active';
+            $user->profile_image = $path;
             $user->save();
 
             $info = new Userinfo();
