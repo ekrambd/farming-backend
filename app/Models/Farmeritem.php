@@ -28,7 +28,7 @@ class Farmeritem extends Model
 
     public function images()
     {
-        return $this->hasMany(FarmerImage::class, 'farmeritem_id');
+        return $this->hasMany(Farmerimage::class, 'farmeritem_id');
     }
 
     public function farmercategory()
