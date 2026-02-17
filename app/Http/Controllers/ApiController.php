@@ -74,7 +74,8 @@ class ApiController extends Controller
                 'email' => 'nullable|email',
                 'address' => 'nullable|string',
                 'password' => 'required|string',
-                'confirm_password' => 'required|string|same:password'
+                'confirm_password' => 'required|string|same:password',
+                'profile_image' => 'nullable',
             ]);
 
             if ($validator->fails()) {
@@ -101,6 +102,15 @@ class ApiController extends Controller
                 }
             }
 
+            if ($request->file('profile_image')) {
+                $file = $request->file('profile_image');
+                $name = time() . "profile_". $file->getClientOriginalName();
+                $file->move(public_path() . '/uploads/farmers/', $name);
+                $path = 'uploads/farmers/' . $name;
+            }else{
+                $path = NULL;
+            }
+
             $user = new User();
             $user->role = 'user';
             $user->full_name = $request->full_name;
@@ -108,6 +118,7 @@ class ApiController extends Controller
             $user->email = $request->email;
             $user->password = bcrypt($request->password);
             $user->address = $request->address;
+            $user->image_path = $path;
             $user->save();
 
             return response()->json(['status'=>true, 'message'=>"Successfully Signup", "data"=>$user],201);
@@ -140,6 +151,11 @@ class ApiController extends Controller
             $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
             $user = User::where('email',$login)->orWhere('phone',$login)->first();
+
+            if(!$user)
+            {
+                return response()->json(['status'=>false, 'message'=>'Email/Phone or Password Invalid', 'token'=>"", 'user'=>new \stdClass()],403);
+            }
             
             if($user->status == 'Inactive'){
                 return response()->json(['status'=>false, 'message'=>'Sorry you are not active user', 'token'=>"", 'user'=>new \stdClass()],403);
@@ -311,6 +327,11 @@ class ApiController extends Controller
             $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
             $user = User::where('email',$login)->orWhere('phone',$login)->first();
+
+            if(!$user)
+            {
+                return response()->json(['status'=>false, 'message'=>'Email/Phone or Password Invalid', 'token'=>"", 'user'=>new \stdClass()],403);
+            }
             
             if($user->status == 'Inactive'){
                 return response()->json(['status'=>false, 'message'=>'Sorry you are not active user', 'token'=>"", 'user'=>new \stdClass()],403);
@@ -688,5 +709,15 @@ class ApiController extends Controller
         }
     }
 
+    public function farmerDetails($id)
+    {
+        try
+        {
+            $farmer = User::with('userinfo')->findorfail($id);
+            return response()->json(['status'=>true, 'data'=>$farmer]); 
+        }catch(Exception $e){
+            return response()->json(['status'=>false, 'code'=>$e->getCode(), 'message'=>$e->getMessage()],500);
+        }
+    }
 
 }
