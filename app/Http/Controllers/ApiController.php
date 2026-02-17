@@ -603,6 +603,7 @@ class ApiController extends Controller
 
             return response()->json([
                 'status' => true,
+                'item_id' => intval($item->id),
                 'message' => 'Item updated successfully'
             ]);
 

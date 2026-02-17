@@ -9,6 +9,8 @@ class Farmeritem extends Model
 {
     use HasFactory;
 
+    protected $appends = ['discount_price'];
+
     protected $fillable = [
         'user_id',
         'farmerunit_id',
@@ -37,5 +39,11 @@ class Farmeritem extends Model
     public function farmersubcategory()
     {
     	return $this->belongsTo(Farmersubcategory::class);
+    }
+
+    public function getDiscountPriceAttribute()
+    {
+        $price = itemPrice($this->id);
+        return strval($price);
     }
 }
